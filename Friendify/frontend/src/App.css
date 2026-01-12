@@ -1,0 +1,13 @@
+.spotify-login-btn {
+  padding: 10px 20px;
+  background-color: #1db954; /* Spotify green */
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.spotify-login-btn:hover {
+  background-color: #1ed760;
+}

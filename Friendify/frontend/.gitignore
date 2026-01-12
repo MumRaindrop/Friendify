@@ -1,0 +1,56 @@
+# ==========================
+# Logs
+# ==========================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================
+# Node / Build
+# ==========================
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*       # any environment-specific files (like .env.development)
+
+# ==========================
+# Editor directories / files
+# ==========================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==========================
+# OS files
+# ==========================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ==========================
+# React / Next / Vite / etc
+# ==========================
+*.tsbuildinfo
+.cache/
+build/
+coverage/
+*.log
+
+# ==========================
+# Optional: Temporary / Misc
+# ==========================
+*.tmp
+*.bak
+*.old

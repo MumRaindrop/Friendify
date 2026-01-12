@@ -1,0 +1,6 @@
+@Friendify.Api_HostAddress = http://localhost:5139
+
+GET {{Friendify.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
