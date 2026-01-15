@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Welcome 🎧</h1>
-      
+      <button onClick={() => navigate(-1)}>← Back</button>
       <div style={{ marginTop: "2rem" }}>
         <button
           onClick={() => navigate(`/top-tracks?spotifyUserId=${spotifyUserId}`)}
@@ -24,9 +24,8 @@ export default function Home() {
 
         <button
           onClick={() => navigate(`/friends?spotifyUserId=${spotifyUserId}`)}
-          disabled
         >
-          👥 Friends (Coming Soon)
+          👥 Friends
         </button>
       </div>
     </div>

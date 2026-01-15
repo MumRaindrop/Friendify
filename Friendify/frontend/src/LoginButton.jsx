@@ -3,7 +3,7 @@ import React from "react";
 export default function LoginButton() {
   const handleLogin = () => {
     // Redirect directly to backend login endpoint
-    window.location.href = "https://reprints-flush-conversion-thee.trycloudflare.com/api/spotify/login";
+    window.location.href = "https://fact-eng-relying-aid.trycloudflare.com/api/spotify/login";
   };
 
   return (

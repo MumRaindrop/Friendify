@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 export default function TopTracks() {
   const [searchParams] = useSearchParams();
   const spotifyUserId = searchParams.get("spotifyUserId");
-
+  const navigate = useNavigate();
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +13,7 @@ export default function TopTracks() {
     if (!spotifyUserId) return;
 
     fetch(
-      `https://reprints-flush-conversion-thee.trycloudflare.com/api/spotify/me/top-tracks?spotifyUserId=${spotifyUserId}`
+      `https://fact-eng-relying-aid.trycloudflare.com/api/spotify/me/top-tracks?spotifyUserId=${spotifyUserId}`
     )
       .then(res => res.json())
       .then(data => {
@@ -29,6 +30,7 @@ export default function TopTracks() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Top Tracks</h1>
+      <button onClick={() => navigate(-1)}>← Back</button>
       <ul style={{ padding: 0 }}>
         {tracks.map(track => (
           <li key={track.rank} style={{ listStyle: "none", marginBottom: "1rem" }}>
