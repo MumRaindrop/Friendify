@@ -12,7 +12,7 @@ export default function TopTracks() {
     if (!spotifyUserId) return;
 
     fetch(
-      `https://strategy-grew-walt-hardcover.trycloudflare.com/api/spotify/me/top-tracks?spotifyUserId=${spotifyUserId}`
+      `https://reprints-flush-conversion-thee.trycloudflare.com/api/spotify/me/top-tracks?spotifyUserId=${spotifyUserId}`
     )
       .then(res => res.json())
       .then(data => {

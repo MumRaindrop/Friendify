@@ -83,7 +83,7 @@ public class SpotifyController : ControllerBase
         await _supabase.Client
             .From<TopTrackRow>()
             .Filter("spotify_user_id", Supabase.Postgrest.Constants.Operator.Equals, profile.Id)
-            .Filter("time_range", Supabase.Postgrest.Constants.Operator.Equals, "long_term")
+            .Filter("time_range", Supabase.Postgrest.Constants.Operator.Equals, "short_term")
             .Delete();
 
         // 6️⃣ Insert new top tracks
@@ -100,7 +100,7 @@ public class SpotifyController : ControllerBase
                 PreviewUrl = track.PreviewUrl,
                 Popularity = track.Popularity,
                 Rank = index + 1,
-                TimeRange = "long_term"
+                TimeRange = "short_term"
             })
             .ToList();
 
@@ -186,7 +186,7 @@ public class SpotifyController : ControllerBase
             new AuthenticationHeaderValue("Bearer", token);
 
         var json = await client.GetStringAsync(
-            "https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=long_term"
+            "https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=short_term"
         );
 
         return JsonSerializer.Deserialize<SpotifyTopTracksDto>(json)!;
