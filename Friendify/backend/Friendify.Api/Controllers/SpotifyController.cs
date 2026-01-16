@@ -49,7 +49,7 @@ public class SpotifyController : ControllerBase
     }
 
     // ==============================
-    // Spotify Callback (MAIN FLOW)
+    // Spotify Callback Redirect
     // ==============================
     [HttpGet("callback")]
     public async Task<IActionResult> Callback([FromQuery] string code)
@@ -65,10 +65,7 @@ public class SpotifyController : ControllerBase
         if (string.IsNullOrEmpty(profile?.Id))
             return BadRequest("Spotify profile missing ID.");
 
-        // 3️⃣ Fetch top tracks
-        var topTracks = await GetTopTracks(accessToken);
-
-        // 4️⃣ Upsert user in Supabase
+        // 3️⃣ Upsert user in Supabase
         await _supabase.Client
             .From<UserRow>()
             .Upsert(new UserRow
@@ -79,39 +76,48 @@ public class SpotifyController : ControllerBase
                 LastLoginAt = DateTime.UtcNow
             });
 
-        // 5️⃣ Clear existing top tracks
-        await _supabase.Client
-            .From<TopTrackRow>()
-            .Filter("spotify_user_id", Supabase.Postgrest.Constants.Operator.Equals, profile.Id)
-            .Filter("time_range", Supabase.Postgrest.Constants.Operator.Equals, "short_term")
-            .Delete();
+        // 4️⃣ Fetch & store top tracks for all time ranges
+        var timeRanges = new[] { "short_term", "medium_term", "long_term" };
 
-        // 6️⃣ Insert new top tracks
-        var rows = topTracks.Items
-            .Where(t => !string.IsNullOrEmpty(t.Id))
-            .Select((track, index) => new TopTrackRow
-            {
-                SpotifyUserId = profile.Id,
-                SpotifyTrackId = track.Id,
-                TrackName = track.Name,
-                ArtistName = string.Join(", ", track.Artists.Select(a => a.Name)),
-                AlbumName = track.Album.Name,
-                AlbumImageUrl = track.Album.Images?.FirstOrDefault()?.Url,
-                PreviewUrl = track.PreviewUrl,
-                Popularity = track.Popularity,
-                Rank = index + 1,
-                TimeRange = "short_term"
-            })
-            .ToList();
-
-        if (rows.Count > 0)
+        foreach (var timeRange in timeRanges)
         {
+            // Fetch top 10 tracks for this time range
+            var topTracks = await GetTopTracks(accessToken, timeRange);
+
+            // Clear existing tracks for this user + time range
             await _supabase.Client
                 .From<TopTrackRow>()
-                .Insert(rows);
+                .Filter("spotify_user_id", Supabase.Postgrest.Constants.Operator.Equals, profile.Id)
+                .Filter("time_range", Supabase.Postgrest.Constants.Operator.Equals, timeRange)
+                .Delete();
+
+            // Insert new tracks
+            var rows = topTracks.Items
+                .Where(t => !string.IsNullOrEmpty(t.Id))
+                .Select((track, index) => new TopTrackRow
+                {
+                    SpotifyUserId = profile.Id,
+                    SpotifyTrackId = track.Id,
+                    TrackName = track.Name,
+                    ArtistName = string.Join(", ", track.Artists.Select(a => a.Name)),
+                    AlbumName = track.Album.Name,
+                    AlbumImageUrl = track.Album.Images?.FirstOrDefault()?.Url,
+                    PreviewUrl = track.PreviewUrl,
+                    Popularity = track.Popularity,
+                    Rank = index + 1,
+                    TimeRange = timeRange
+                })
+                .ToList();
+
+            if (rows.Count > 0)
+            {
+                await _supabase.Client
+                    .From<TopTrackRow>()
+                    .Insert(rows);
+            }
         }
 
-        // 7️⃣ Redirect to frontend HOME (not top tracks directly)
+        // 5️⃣ Redirect to frontend HOME
         return Redirect($"http://localhost:5173/home?spotifyUserId={profile.Id}");
     }
 
@@ -119,7 +125,10 @@ public class SpotifyController : ControllerBase
     // Get User Top Tracks
     // ==============================
     [HttpGet("me/top-tracks")]
-    public async Task<IActionResult> GetMyTopTracks([FromQuery] string spotifyUserId)
+    public async Task<IActionResult> GetMyTopTracks(
+        [FromQuery] string spotifyUserId,
+        [FromQuery] string timeRange = "medium_term"
+    )
     {
         if (string.IsNullOrEmpty(spotifyUserId))
             return BadRequest("Missing Spotify user ID");
@@ -127,6 +136,7 @@ public class SpotifyController : ControllerBase
         var result = await _supabase.Client
             .From<TopTrackRow>()
             .Where(t => t.SpotifyUserId == spotifyUserId)
+            .Where(t => t.TimeRange == timeRange)
             .Order(t => t.Rank, Supabase.Postgrest.Constants.Ordering.Ascending)
             .Get();
 
@@ -179,16 +189,17 @@ public class SpotifyController : ControllerBase
         return JsonSerializer.Deserialize<SpotifyProfileDto>(json)!;
     }
 
-    private async Task<SpotifyTopTracksDto> GetTopTracks(string token)
+    private async Task<SpotifyTopTracksDto> GetTopTracks(string token, string timeRange)
     {
         using var client = new HttpClient();
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
         var json = await client.GetStringAsync(
-            "https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=short_term"
+            $"https://api.spotify.com/v1/me/top/tracks?limit=10&time_range={timeRange}"
         );
 
         return JsonSerializer.Deserialize<SpotifyTopTracksDto>(json)!;
     }
+
 }

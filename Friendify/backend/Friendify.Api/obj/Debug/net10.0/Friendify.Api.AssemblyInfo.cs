@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Friendify.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8402893015126aa0efbe54dd9fd401a28538ac49")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4c0116d5f3c83742ea1f98e7feb14c997c041dd5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Friendify.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Friendify.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

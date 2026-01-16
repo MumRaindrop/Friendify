@@ -218,6 +218,31 @@ public class FriendController : ControllerBase
         }
     }
 
+    [HttpGet("user")]
+    public async Task<IActionResult> GetUser([FromQuery] string spotifyUserId)
+    {
+        if (string.IsNullOrWhiteSpace(spotifyUserId))
+            return BadRequest("SpotifyUserId is required");
+
+        try
+        {
+            var result = await _supabase.Client
+                .From<UserRow>()
+                .Where(u => u.SpotifyUserId == spotifyUserId)
+                .Get();
+
+            var user = result.Models.FirstOrDefault();
+            if (user == null) return NotFound();
+
+            return Ok(new { user.DisplayName, user.SpotifyUserId });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetUser failed: {ex}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
     // -----------------------
     // Remove a friend
     // -----------------------

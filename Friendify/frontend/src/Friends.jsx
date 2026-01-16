@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import logo from "./assets/logo.png";
 import axios from "axios";
 
 export default function Friends(props) {
@@ -21,7 +22,6 @@ export default function Friends(props) {
       const res = await axios.get(`http://localhost:5139/api/friends`, {
         params: { spotifyUserId },
       });
-
       setFriends(res.data);
     } catch (err) {
       console.error("Error fetching friends", err);
@@ -33,12 +33,10 @@ export default function Friends(props) {
   // -------------------------
   const fetchRequests = async () => {
     if (!spotifyUserId) return;
-
     try {
       const res = await axios.get(`http://localhost:5139/api/friends/requests`, {
         params: { spotifyUserId },
       });
-
       setRequests(res.data);
     } catch (err) {
       console.error("Error fetching friend requests", err);
@@ -53,7 +51,6 @@ export default function Friends(props) {
       const res = await axios.get(`http://localhost:5139/api/friends/search`, {
         params: { displayName: query },
       });
-
       setSearchResults(res.data);
     } catch (err) {
       console.error("Error searching users", err);
@@ -61,11 +58,10 @@ export default function Friends(props) {
   };
 
   // -------------------------
-  // Send Friend Request
+  // Send / Accept / Reject / Remove
   // -------------------------
   const sendRequest = async (receiverId) => {
     if (!spotifyUserId) return;
-
     try {
       await axios.post(`http://localhost:5139/api/friends/request`, null, {
         params: {
@@ -73,7 +69,6 @@ export default function Friends(props) {
           ReceiverSpotifyId: receiverId,
         },
       });
-
       fetchRequests();
     } catch (err) {
       console.error("Error sending friend request", err);
@@ -82,10 +77,7 @@ export default function Friends(props) {
 
   const acceptRequest = async (requestId) => {
     try {
-      await axios.post(`http://localhost:5139/api/friends/accept`, null, {
-        params: { requestId },
-      });
-
+      await axios.post(`http://localhost:5139/api/friends/accept`, null, { params: { requestId } });
       fetchRequests();
       fetchFriends();
     } catch (err) {
@@ -95,10 +87,7 @@ export default function Friends(props) {
 
   const rejectRequest = async (requestId) => {
     try {
-      await axios.post(`http://localhost:5139/api/friends/reject`, null, {
-        params: { requestId },
-      });
-
+      await axios.post(`http://localhost:5139/api/friends/reject`, null, { params: { requestId } });
       fetchRequests();
     } catch (err) {
       console.error("Error rejecting request", err);
@@ -106,17 +95,11 @@ export default function Friends(props) {
   };
 
   const removeFriend = async (friendSpotifyId) => {
-  if (!spotifyUserId) return;
-
+    if (!spotifyUserId) return;
     try {
       await axios.delete(`http://localhost:5139/api/friends/remove`, {
-        params: {
-          spotifyUserId,
-          friendSpotifyId,
-        },
+        params: { spotifyUserId, friendSpotifyId },
       });
-
-      // Refresh friends list after removal
       fetchFriends();
     } catch (err) {
       console.error("Error removing friend", err);
@@ -125,33 +108,118 @@ export default function Friends(props) {
 
   useEffect(() => {
     if (!spotifyUserId) return;
-
     fetchFriends();
     fetchRequests();
   }, [spotifyUserId]);
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Friends</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        padding: "6rem 2rem 2rem 2rem", // <-- increased top padding to push content below logo
+        backgroundColor: "#121212",
+        color: "#FFFFFF",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        border: "10px solid #1DB954",
+        boxSizing: "border-box",
+        position: "relative",
+      }}
+    >
 
-      {/* Go Back */}
-      <button onClick={() => navigate(-1)}>← Back</button>
+      {/* Friendify Logo Header Top-Left */}
+      <div
+        onClick={() => navigate("/")}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          cursor: "pointer",
+          position: "absolute",
+          top: "2rem",
+          left: "2rem",
+        }}
+      >
+        <img
+          src={logo}
+          alt="Friendify Logo"
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "12px",
+            marginRight: "10px",
+          }}
+        />
+        <span style={{ fontSize: "1.8rem", fontWeight: "700", color: "#1DB954" }}>
+          Friendify
+        </span>
+      </div>
 
       {/* Search Users */}
-      <section>
-        <h2>Search Users</h2>
-        <input
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Enter Spotify display name"
-        />
-        <button onClick={() => searchUsers(searchQuery)}>Search</button>
+      <section style={{ marginBottom: "2rem" }}>
+        <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Search Users</h3>
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Enter Spotify display name"
+            style={{
+              flex: 1,
+              padding: "0.5rem 1rem",
+              borderRadius: "8px",
+              border: "1px solid #555",
+              backgroundColor: "#1e1e1e",
+              color: "#FFFFFF",
+            }}
+          />
+          <button
+            onClick={() => searchUsers(searchQuery)}
+            style={{
+              padding: "0.5rem 1rem",
+              backgroundColor: "transparent",
+              color: "#1DB954",
+              border: "2px solid #1DB954",
+              borderRadius: "50px",
+              cursor: "pointer",
+              fontWeight: "600",
+              transition: "0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#1DB954";
+              e.currentTarget.style.color = "#FFFFFF";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "#1DB954";
+            }}
+          >
+            Search
+          </button>
+        </div>
 
-        <ul>
-          {searchResults.map(user => (
-            <li key={user.spotifyUserId}>
-              {user.displayName}
-              <button onClick={() => sendRequest(user.spotifyUserId)}>
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {searchResults.map((user) => (
+            <li key={user.spotifyUserId} style={{ marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span>{user.displayName}</span>
+              <button
+                onClick={() => sendRequest(user.spotifyUserId)}
+                style={{
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "8px",
+                  border: "2px solid #1DB954",
+                  backgroundColor: "transparent",
+                  color: "#1DB954",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                  transition: "0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1DB954";
+                  e.currentTarget.style.color = "#FFFFFF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "#1DB954";
+                }}
+              >
                 Send Request
               </button>
             </li>
@@ -160,17 +228,61 @@ export default function Friends(props) {
       </section>
 
       {/* Incoming Requests */}
-      <section>
-        <h2>Incoming Friend Requests</h2>
+      <section style={{ marginBottom: "2rem" }}>
+        <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Incoming Friend Requests</h3>
         {requests.length === 0 ? (
           <p>No incoming requests</p>
         ) : (
-          <ul>
-            {requests.map(req => (
-              <li key={req.id}>
-                <strong>{req.senderDisplayName}</strong>
-                <button onClick={() => acceptRequest(req.id)}>Accept</button>
-                <button onClick={() => rejectRequest(req.id)}>Reject</button>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {requests.map((req) => (
+              <li key={req.id} style={{ marginBottom: "0.5rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <span>{req.senderDisplayName}</span>
+                <button
+                  onClick={() => acceptRequest(req.id)}
+                  style={{
+                    padding: "0.25rem 0.5rem",
+                    borderRadius: "8px",
+                    border: "2px solid #1DB954",
+                    backgroundColor: "transparent",
+                    color: "#1DB954",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    transition: "0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1DB954";
+                    e.currentTarget.style.color = "#FFFFFF";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#1DB954";
+                  }}
+                >
+                  Accept
+                </button>
+                <button
+                  onClick={() => rejectRequest(req.id)}
+                  style={{
+                    padding: "0.25rem 0.5rem",
+                    borderRadius: "8px",
+                    border: "2px solid red",
+                    backgroundColor: "transparent",
+                    color: "red",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    transition: "0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "red";
+                    e.currentTarget.style.color = "#FFFFFF";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "red";
+                  }}
+                >
+                  Reject
+                </button>
               </li>
             ))}
           </ul>
@@ -178,45 +290,59 @@ export default function Friends(props) {
       </section>
 
       {/* Friends List */}
-      <section>
-        <h2>Your Friends</h2>
+      <section style={{ marginBottom: "2rem" }}>
+        <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Your Friends</h3>
         {friends.length === 0 ? (
           <p>You have no friends yet.</p>
         ) : (
-          <ul>
-            {friends.map(friend => (
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {friends.map((friend) => (
               <li
                 key={friend.spotifyId}
-                style={{ display: "flex", alignItems: "center", gap: "1rem" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  marginBottom: "0.5rem",
+                }}
               >
-                {/* Friend name → Top Tracks */}
+                {/* Clickable friend name */}
                 <button
-                  onClick={() =>
-                    navigate(`/top-tracks?spotifyUserId=${friend.spotifyId}`)
-                  }
+                  onClick={() => navigate(`/top-tracks?spotifyUserId=${friend.spotifyId}`)}
                   style={{
                     background: "none",
                     border: "none",
                     padding: 0,
                     cursor: "pointer",
-                    color: "#1db954",
+                    color: "#1DB954",
                     textDecoration: "underline",
-                    fontSize: "1rem"
+                    fontSize: "1rem",
+                    fontWeight: "500",
                   }}
                 >
                   {friend.displayName}
                 </button>
 
-                {/* Remove Friend */}
+                {/* Remove Friend button */}
                 <button
                   onClick={() => removeFriend(friend.spotifyId)}
                   style={{
                     background: "transparent",
-                    border: "1px solid red",
+                    border: "2px solid red",
                     color: "red",
                     padding: "0.25rem 0.5rem",
                     cursor: "pointer",
-                    borderRadius: "4px"
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    transition: "0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "red";
+                    e.currentTarget.style.color = "#FFFFFF";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "red";
                   }}
                 >
                   Remove
@@ -226,6 +352,34 @@ export default function Friends(props) {
           </ul>
         )}
       </section>
+
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          position: "absolute",
+          bottom: "2rem",
+          left: "2rem",
+          padding: "0.5rem 1rem",
+          borderRadius: "50px",
+          backgroundColor: "transparent",
+          color: "#1DB954",
+          border: "2px solid #1DB954",
+          cursor: "pointer",
+          fontWeight: "600",
+          transition: "0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#1DB954";
+          e.currentTarget.style.color = "#FFFFFF";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = "#1DB954";
+        }}
+      >
+        Back
+      </button>
     </div>
   );
 }
