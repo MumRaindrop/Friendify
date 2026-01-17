@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Friendify.Api.Dtos
+namespace Friendify.Api.Dtos // Dto for getting top tracks
 {
     public class SpotifyTopTracksDto
     {

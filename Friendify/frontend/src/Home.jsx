@@ -3,23 +3,19 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import axios from "axios";
 
-export default function Home() {
+export default function Home() { // Home page, move to user top tracks or go to the friends page
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const spotifyUserId = searchParams.get("spotifyUserId");
-  const [displayName, setDisplayName] = useState("User"); // fallback
+  const [displayName, setDisplayName] = useState("User");
 
-  // Remove default margin and set background color
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.backgroundColor = "#121212";
   }, []);
 
-  // -------------------------
-  // Fetch the current user's display name using Spotify ID
-  // -------------------------
   useEffect(() => {
     if (!spotifyUserId) return;
 
@@ -73,12 +69,11 @@ export default function Home() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        border: "10px solid #1DB954", // Green border
+        border: "10px solid #1DB954",
         boxSizing: "border-box",
         position: "relative",
       }}
     >
-      {/* Friendify Logo Header Top-Left */}
       <div
         onClick={() => navigate("/")}
         style={{
@@ -105,7 +100,6 @@ export default function Home() {
         </span>
       </div>
 
-      {/* Header */}
       <div style={{ textAlign: "center", marginTop: "4rem", marginBottom: "3rem" }}>
         <h2 style={{ margin: 0, fontSize: "2rem", fontWeight: "400" }}>Welcome</h2>
         <h1
@@ -120,7 +114,6 @@ export default function Home() {
         </h1>
       </div>
 
-      {/* Main Navigation Buttons */}
       <div
         style={{
           display: "flex",
@@ -190,7 +183,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
         style={{

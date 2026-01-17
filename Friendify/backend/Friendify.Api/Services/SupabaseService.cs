@@ -1,7 +1,7 @@
 using Supabase;
 using Microsoft.Extensions.Configuration;
 
-namespace Friendify.Api.Services;
+namespace Friendify.Api.Services; // Supabase service using secret and database url
 
 public class SupabaseService
 {

@@ -1,6 +1,6 @@
 namespace Friendify.Api.Dtos;
 
-public class TopTrackDto
+public class TopTrackDto // Different too tracks dto
 {
     public int Rank { get; set; }
     public string TrackName { get; set; } = string.Empty;

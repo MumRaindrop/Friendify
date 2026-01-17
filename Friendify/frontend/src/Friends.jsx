@@ -14,10 +14,7 @@ export default function Friends(props) {
 
   const spotifyUserId = props.spotifyUserId || searchParams.get("spotifyUserId");
 
-  // -------------------------
-  // Fetch Friends
-  // -------------------------
-  const fetchFriends = async () => {
+  const fetchFriends = async () => { // Get friends
     try {
       const res = await axios.get(`http://localhost:5139/api/friends`, {
         params: { spotifyUserId },
@@ -28,10 +25,7 @@ export default function Friends(props) {
     }
   };
 
-  // -------------------------
-  // Fetch Incoming Requests
-  // -------------------------
-  const fetchRequests = async () => {
+  const fetchRequests = async () => { // Get requests
     if (!spotifyUserId) return;
     try {
       const res = await axios.get(`http://localhost:5139/api/friends/requests`, {
@@ -43,10 +37,7 @@ export default function Friends(props) {
     }
   };
 
-  // -------------------------
-  // Search Users
-  // -------------------------
-  const searchUsers = async (query) => {
+  const searchUsers = async (query) => { // Search for users
     try {
       const res = await axios.get(`http://localhost:5139/api/friends/search`, {
         params: { displayName: query },
@@ -57,10 +48,7 @@ export default function Friends(props) {
     }
   };
 
-  // -------------------------
-  // Send / Accept / Reject / Remove
-  // -------------------------
-  const sendRequest = async (receiverId) => {
+  const sendRequest = async (receiverId) => { // Send a friend request
     if (!spotifyUserId) return;
     try {
       await axios.post(`http://localhost:5139/api/friends/request`, null, {
@@ -75,7 +63,7 @@ export default function Friends(props) {
     }
   };
 
-  const acceptRequest = async (requestId) => {
+  const acceptRequest = async (requestId) => { // Accept a friend request
     try {
       await axios.post(`http://localhost:5139/api/friends/accept`, null, { params: { requestId } });
       fetchRequests();
@@ -85,7 +73,7 @@ export default function Friends(props) {
     }
   };
 
-  const rejectRequest = async (requestId) => {
+  const rejectRequest = async (requestId) => { // Reject a friend request
     try {
       await axios.post(`http://localhost:5139/api/friends/reject`, null, { params: { requestId } });
       fetchRequests();
@@ -94,7 +82,7 @@ export default function Friends(props) {
     }
   };
 
-  const removeFriend = async (friendSpotifyId) => {
+  const removeFriend = async (friendSpotifyId) => { // Remove a friend
     if (!spotifyUserId) return;
     try {
       await axios.delete(`http://localhost:5139/api/friends/remove`, {
@@ -106,17 +94,17 @@ export default function Friends(props) {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { // on load
     if (!spotifyUserId) return;
-    fetchFriends();
+    fetchFriends(); // get friends and requests
     fetchRequests();
   }, [spotifyUserId]);
 
-  return (
+  return ( // display page based on url spotify id
     <div
       style={{
         minHeight: "100vh",
-        padding: "6rem 2rem 2rem 2rem", // <-- increased top padding to push content below logo
+        padding: "6rem 2rem 2rem 2rem",
         backgroundColor: "#121212",
         color: "#FFFFFF",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
@@ -126,7 +114,6 @@ export default function Friends(props) {
       }}
     >
 
-      {/* Friendify Logo Header Top-Left */}
       <div
         onClick={() => navigate("/")}
         style={{
@@ -153,7 +140,6 @@ export default function Friends(props) {
         </span>
       </div>
 
-      {/* Search Users */}
       <section style={{ marginBottom: "2rem" }}>
         <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Search Users</h3>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
@@ -227,7 +213,6 @@ export default function Friends(props) {
         </ul>
       </section>
 
-      {/* Incoming Requests */}
       <section style={{ marginBottom: "2rem" }}>
         <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Incoming Friend Requests</h3>
         {requests.length === 0 ? (
@@ -289,7 +274,6 @@ export default function Friends(props) {
         )}
       </section>
 
-      {/* Friends List */}
       <section style={{ marginBottom: "2rem" }}>
         <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Your Friends</h3>
         {friends.length === 0 ? (
@@ -306,7 +290,6 @@ export default function Friends(props) {
                   marginBottom: "0.5rem",
                 }}
               >
-                {/* Clickable friend name */}
                 <button
                   onClick={() => navigate(`/top-tracks?spotifyUserId=${friend.spotifyId}`)}
                   style={{
@@ -323,7 +306,6 @@ export default function Friends(props) {
                   {friend.displayName}
                 </button>
 
-                {/* Remove Friend button */}
                 <button
                   onClick={() => removeFriend(friend.spotifyId)}
                   style={{
@@ -353,7 +335,6 @@ export default function Friends(props) {
         )}
       </section>
 
-      {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
         style={{

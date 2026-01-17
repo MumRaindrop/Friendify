@@ -4,7 +4,7 @@ using Supabase.Postgrest.Models;
 namespace Friendify.Api.Models;
 
 [Table("top_tracks")]
-public class TopTrackRow : BaseModel
+public class TopTrackRow : BaseModel // model for a row from top tracks table in supabase
 {
     [PrimaryKey("id")]
     public Guid Id { get; set; }

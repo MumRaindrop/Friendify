@@ -5,7 +5,6 @@ const SpotifyContext = createContext();
 export function SpotifyProvider({ children }) {
   const [spotifyUserId, setSpotifyUserId] = useState(null);
 
-  // Initialize from localStorage once on mount
   useEffect(() => {
     const id = localStorage.getItem("spotify_user_id");
     if (id) setSpotifyUserId(id);

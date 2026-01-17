@@ -5,7 +5,7 @@ using Friendify.Api.Services;
 using Friendify.Api.Models;
 using Friendify.Api.Dtos;
 
-namespace Friendify.Api.Controllers;
+namespace Friendify.Api.Controllers; // Controller for interacting with Spotify API and supabase related tables
 
 [ApiController]
 [Route("api/spotify")]
@@ -20,24 +20,21 @@ public class SpotifyController : ControllerBase
         _supabase = supabase;
     }
 
-    // ==============================
-    // Spotify Login Redirect
-    // ==============================
-    [HttpGet("login")]
+    [HttpGet("login")] // Redirect to spotify login
     public IActionResult Login()
     {
         var clientId = _config["Spotify:ClientId"];
         var redirectUri = _config["Spotify:RedirectUri"];
 
         // ✅ REQUIRED SCOPES
-        var scopes = string.Join(" ", new[]
+        var scopes = string.Join(" ", new[] // Scopes to request on authentication
         {
             "user-read-email",
             "user-read-private",
             "user-top-read"
         });
 
-        var url =
+        var url = // Redirect url, for requesting information from spotify
             "https://accounts.spotify.com/authorize" +
             $"?response_type=code" +
             $"&client_id={clientId}" +
@@ -48,25 +45,19 @@ public class SpotifyController : ControllerBase
         return Redirect(url);
     }
 
-    // ==============================
-    // Spotify Callback Redirect
-    // ==============================
-    [HttpGet("callback")]
+    [HttpGet("callback")] // redirect after login
     public async Task<IActionResult> Callback([FromQuery] string code)
     {
-        if (string.IsNullOrEmpty(code))
+        if (string.IsNullOrEmpty(code)) 
             return BadRequest("Missing code");
 
-        // 1️⃣ Exchange code → access token
-        var accessToken = await ExchangeCodeForToken(code);
+        var accessToken = await ExchangeCodeForToken(code); // Get access token using auth code
 
-        // 2️⃣ Fetch Spotify profile
-        var profile = await GetSpotifyProfile(accessToken);
+        var profile = await GetSpotifyProfile(accessToken); // Get a user spotify profile
         if (string.IsNullOrEmpty(profile?.Id))
             return BadRequest("Spotify profile missing ID.");
 
-        // 3️⃣ Upsert user in Supabase
-        await _supabase.Client
+        await _supabase.Client // get the information to save the user to the user table in supabase
             .From<UserRow>()
             .Upsert(new UserRow
             {
@@ -76,22 +67,21 @@ public class SpotifyController : ControllerBase
                 LastLoginAt = DateTime.UtcNow
             });
 
-        // 4️⃣ Fetch & store top tracks for all time ranges
-        var timeRanges = new[] { "short_term", "medium_term", "long_term" };
+        var timeRanges = new[] { "short_term", "medium_term", "long_term" }; // time ranges for top tracks
 
-        foreach (var timeRange in timeRanges)
+        foreach (var timeRange in timeRanges) // for each of the time ranges
         {
-            // Fetch top 10 tracks for this time range
+            // Get the top 10 tracks for that time range using the access token
             var topTracks = await GetTopTracks(accessToken, timeRange);
 
-            // Clear existing tracks for this user + time range
+            // Remove existing tracks to be replaced
             await _supabase.Client
                 .From<TopTrackRow>()
                 .Filter("spotify_user_id", Supabase.Postgrest.Constants.Operator.Equals, profile.Id)
                 .Filter("time_range", Supabase.Postgrest.Constants.Operator.Equals, timeRange)
                 .Delete();
 
-            // Insert new tracks
+            // Add the new top tracks to top tracks table
             var rows = topTracks.Items
                 .Where(t => !string.IsNullOrEmpty(t.Id))
                 .Select((track, index) => new TopTrackRow
@@ -109,7 +99,7 @@ public class SpotifyController : ControllerBase
                 })
                 .ToList();
 
-            if (rows.Count > 0)
+            if (rows.Count > 0) // Insert the new rows
             {
                 await _supabase.Client
                     .From<TopTrackRow>()
@@ -117,23 +107,19 @@ public class SpotifyController : ControllerBase
             }
         }
 
-        // 5️⃣ Redirect to frontend HOME
-        return Redirect($"http://localhost:5173/home?spotifyUserId={profile.Id}");
+        return Redirect($"http://localhost:5173/home?spotifyUserId={profile.Id}"); // Redirect to the home page
     }
 
-    // ==============================
-    // Get User Top Tracks
-    // ==============================
-    [HttpGet("me/top-tracks")]
+    [HttpGet("me/top-tracks")] // Get a user's top tracks
     public async Task<IActionResult> GetMyTopTracks(
         [FromQuery] string spotifyUserId,
-        [FromQuery] string timeRange = "medium_term"
+        [FromQuery] string timeRange = "medium_term" // Default time range
     )
     {
-        if (string.IsNullOrEmpty(spotifyUserId))
+        if (string.IsNullOrEmpty(spotifyUserId)) // Valid id check
             return BadRequest("Missing Spotify user ID");
 
-        var result = await _supabase.Client
+        var result = await _supabase.Client // Ask for the top rows for the user and time range
             .From<TopTrackRow>()
             .Where(t => t.SpotifyUserId == spotifyUserId)
             .Where(t => t.TimeRange == timeRange)
@@ -149,14 +135,12 @@ public class SpotifyController : ControllerBase
             t.AlbumImageUrl,
             t.PreviewUrl,
             t.Popularity
-        });
+        }); // Get the tracks as a useable model
 
-        return Ok(tracks);
+        return Ok(tracks); // return the tracks
     }
 
-    // ==============================
-    // Helper Methods
-    // ==============================
+    // Methods to make it all work
     private async Task<string> ExchangeCodeForToken(string code)
     {
         using var client = new HttpClient();
@@ -171,25 +155,25 @@ public class SpotifyController : ControllerBase
                 { "client_id", _config["Spotify:ClientId"] },
                 { "client_secret", _config["Spotify:ClientSecret"] }
             })
-        );
+        ); // using the auth code request an access token from spotify using the apps keys
 
         response.EnsureSuccessStatusCode();
 
         var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        return json.RootElement.GetProperty("access_token").GetString()!;
+        return json.RootElement.GetProperty("access_token").GetString()!; // return the access token
     }
 
-    private async Task<SpotifyProfileDto> GetSpotifyProfile(string token)
+    private async Task<SpotifyProfileDto> GetSpotifyProfile(string token) // Get the profile
     {
         using var client = new HttpClient();
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
         var json = await client.GetStringAsync("https://api.spotify.com/v1/me");
-        return JsonSerializer.Deserialize<SpotifyProfileDto>(json)!;
+        return JsonSerializer.Deserialize<SpotifyProfileDto>(json)!; // Return the spotify profile from the token
     }
 
-    private async Task<SpotifyTopTracksDto> GetTopTracks(string token, string timeRange)
+    private async Task<SpotifyTopTracksDto> GetTopTracks(string token, string timeRange) // Get tracks from access token and time range
     {
         using var client = new HttpClient();
         client.DefaultRequestHeaders.Authorization =

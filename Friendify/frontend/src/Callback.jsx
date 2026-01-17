@@ -7,11 +7,11 @@ export default function Callback() {
   const navigate = useNavigate();
   const { setSpotifyUserId } = useSpotify();
 
-  useEffect(() => {
+  useEffect(() => { // Redirect to next page based on spotify id in current url
     const spotifyUserId = searchParams.get("spotifyUserId");
     if (spotifyUserId) {
       localStorage.setItem("spotify_user_id", spotifyUserId);
-      setSpotifyUserId(spotifyUserId); // update context
+      setSpotifyUserId(spotifyUserId);
       navigate("/top-tracks");
     } else {
       console.error("Spotify user ID not found in callback URL.");

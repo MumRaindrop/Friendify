@@ -1,7 +1,7 @@
 using System.Security.Authentication.ExtendedProtection;
 using Friendify.Api.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args); // Program file to make everything work with the HTTP and HTTPS
 
 // Add services
 builder.Services.AddControllers();
@@ -45,7 +45,7 @@ var controllerTypes = typeof(Program).Assembly
     .GetTypes()
     .Where(t => t.IsSubclassOf(typeof(Microsoft.AspNetCore.Mvc.ControllerBase)));
 
-foreach (var c in controllerTypes)
+foreach (var c in controllerTypes) // Log to test read controllers
 {
     Console.WriteLine("Loaded controller: " + c.FullName);
 }

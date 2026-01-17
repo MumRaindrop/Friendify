@@ -1,7 +1,7 @@
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
-namespace Friendify.Api.Models;
+namespace Friendify.Api.Models; // Model of a row from users table in supabase
 
 [Table("users")]
 public class UserRow : BaseModel

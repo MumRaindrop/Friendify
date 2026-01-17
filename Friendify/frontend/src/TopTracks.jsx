@@ -9,7 +9,7 @@ const TIME_RANGES = [
   { key: "long_term", label: "All Time" }
 ];
 
-export default function TopTracks() {
+export default function TopTracks() { // Page displays the top tracks of the current user based on time ranges
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -19,9 +19,6 @@ export default function TopTracks() {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // -------------------------
-  // Fetch Display Name by Spotify ID
-  // -------------------------
   useEffect(() => {
     if (!spotifyUserId) return;
 
@@ -40,15 +37,12 @@ export default function TopTracks() {
     fetchDisplayName();
   }, [spotifyUserId]);
 
-  // -------------------------
-  // Fetch Top Tracks
-  // -------------------------
   useEffect(() => {
     if (!spotifyUserId) return;
     setLoading(true);
 
     fetch(
-      `https://fact-eng-relying-aid.trycloudflare.com/api/spotify/me/top-tracks?spotifyUserId=${spotifyUserId}&timeRange=${timeRange}`
+      `https://cds-jersey-beings-sterling.trycloudflare.com/api/spotify/me/top-tracks?spotifyUserId=${spotifyUserId}&timeRange=${timeRange}`
     )
       .then(res => res.json())
       .then(data => {
@@ -80,7 +74,7 @@ export default function TopTracks() {
     <div
       style={{
         minHeight: "100vh",
-        padding: "3rem 2rem 2rem 2rem", // top padding to avoid logo overlap
+        padding: "3rem 2rem 2rem 2rem",
         backgroundColor: "#121212",
         color: "#fff",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
@@ -91,7 +85,6 @@ export default function TopTracks() {
         position: "relative"
       }}
     >
-      {/* Friendify Logo Top-Left */}
       <div
         onClick={() => navigate("/")}
         style={{
@@ -118,14 +111,12 @@ export default function TopTracks() {
         </span>
       </div>
 
-      {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "2rem", marginTop: "1rem" }}>
         <h1 style={{ margin: 0, fontSize: "2.5rem", fontWeight: "700" }}>
           <span style={{ color: "#1DB954" }}>{displayName}'s</span> Top Tracks
         </h1>
       </div>
 
-      {/* Time Range Selector */}
       <div
         style={{
           display: "flex",
@@ -155,7 +146,6 @@ export default function TopTracks() {
         ))}
       </div>
 
-      {/* Tracks List */}
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: "4rem" }}>
         {loading ? (
           <div style={{ textAlign: "center" }}>Loading top tracks...</div>
@@ -175,7 +165,6 @@ export default function TopTracks() {
                   paddingBottom: "0.5rem"
                 }}
               >
-                {/* Album Image */}
                 {track.albumImageUrl && (
                   <img
                     src={track.albumImageUrl}
@@ -184,7 +173,6 @@ export default function TopTracks() {
                   />
                 )}
 
-                {/* Track Info */}
                 <div style={{ flex: 1 }}>
                   <strong style={{ fontSize: "1.1rem" }}>
                     {track.rank}. {track.trackName}
@@ -194,7 +182,6 @@ export default function TopTracks() {
                   <div style={{ color: "#888", fontSize: "0.9rem" }}>Popularity: {track.popularity}</div>
                 </div>
 
-                {/* Preview Button */}
                 {track.previewUrl && (
                   <a
                     href={track.previewUrl}
@@ -221,7 +208,6 @@ export default function TopTracks() {
         )}
       </div>
 
-      {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
         style={{

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using Supabase.Postgrest.Models;
 using Supabase.Postgrest.Attributes;
 
-namespace Friendify.Api.Models;
+namespace Friendify.Api.Models; // Model of row from friend request table in Supabase
 
 [Table("friend_requests")]
 public class FriendRequestRow : BaseModel
