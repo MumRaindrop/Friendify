@@ -89,7 +89,7 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
           <br />
           The site functions using an ASP.NET backend, a React/Node.js frontend,
           makes use of an online PostgreSQL database (Supabase), accesses
-          Spotify’s API, and is fully hosted on Azure. The application functions
+          Spotify’s API, and is fully hosted on Render and Vercel. The application functions
           by requesting a user's data on login/authentication through the Spotify
           api. The data received is then sent to update the data tables in the 
           Supabase database in order to reduce Spotify api requests. Then all
