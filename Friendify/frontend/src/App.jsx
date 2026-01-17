@@ -7,7 +7,7 @@ import Friends from "./Friends";
 import HelpInfo from "./HelpInfo";
 
 function App() {
-  return ( // Routes for the web end
+  return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginButton />} />

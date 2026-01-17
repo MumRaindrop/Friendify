@@ -25,7 +25,6 @@ build/
 appsettings.json
 appsettings.*.json
 *.secret.json
-*.config.js
 *.config.ts
 
 # ==========================

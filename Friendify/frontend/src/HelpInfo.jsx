@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import FriendifyLogo from "./assets/Logo.png";
 
-export default function HelpInfo() { // Sort of a Read me for the web app, has contact to be added as a user for the app
+export default function HelpInfo() {
   const navigate = useNavigate();
 
   return (
@@ -15,15 +15,19 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
         alignItems: "center",
         padding: "2rem",
         boxSizing: "border-box",
+        border: "10px solid #1DB954",
       }}
     >
+      {/* Header */}
       <div
         onClick={() => navigate("/")}
         style={{
           display: "flex",
           alignItems: "center",
           cursor: "pointer",
-          marginBottom: "3rem",
+          position: "absolute",
+          top: "2rem",
+          left: "2rem",
         }}
       >
         <img
@@ -38,7 +42,7 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
         <span
           style={{
             fontSize: "1.75rem",
-            fontWeight: "bold",
+            fontWeight: "700",
             color: "#1DB954",
           }}
         >
@@ -46,6 +50,7 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
         </span>
       </div>
 
+      {/* Info card */}
       <div
         style={{
           maxWidth: "700px",
@@ -54,24 +59,11 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
           borderRadius: "12px",
           padding: "2.5rem",
           boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+          marginTop: "6rem",
         }}
       >
-        <h2
-          style={{
-            color: "#1DB954",
-            marginBottom: "1rem",
-          }}
-        >
-          About the Project
-        </h2>
-
-        <p
-          style={{
-            lineHeight: "1.7",
-            color: "#e0e0e0",
-            marginBottom: "2.5rem",
-          }}
-        >
+        <h2 style={{ color: "#1DB954", marginBottom: "1rem" }}>About the Project</h2>
+        <p style={{ lineHeight: "1.7", color: "#e0e0e0", marginBottom: "2.5rem" }}>
           Welcome to Friendify — a web application made to bring your Spotify
           stats to your fingertips whenever you want. Almost like a Spotify
           Wrapped whenever you want it. When I use Spotify I would like to 
@@ -89,7 +81,7 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
           <br />
           The site functions using an ASP.NET backend, a React/Node.js frontend,
           makes use of an online PostgreSQL database (Supabase), accesses
-          Spotify’s API, and is fully hosted on Render and Vercel. The application functions
+          Spotify’s API, and is fully hosted on Render. The application functions
           by requesting a user's data on login/authentication through the Spotify
           api. The data received is then sent to update the data tables in the 
           Supabase database in order to reduce Spotify api requests. Then all
@@ -100,41 +92,19 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
           to view the top tracks of eachother through the friends page.
         </p>
 
-        <h2
-          style={{
-            color: "#1DB954",
-            marginBottom: "1rem",
-          }}
-        >
-          Request Access
-        </h2>
-
-        <p
-          style={{
-            lineHeight: "1.7",
-            color: "#e0e0e0",
-          }}
-        >
-          The site is only open to a select few since Spotify only allows up to 25
-          users for developmental projects.
-          <br />
-          <br />
-          Please reach out to request access to the site for evaluation or
-          interest. Being added as a user requires your name and the email your
-          Spotify account is linked to.
+        <h2 style={{ color: "#1DB954", marginBottom: "1rem" }}>Request Access</h2>
+        <p style={{ lineHeight: "1.7", color: "#e0e0e0" }}>
+          The app is limited to a few users due to Spotify development restrictions.
+          <br /><br />
+          To request access, provide your name and the email linked to your Spotify account.
         </p>
 
-        <p
-          style={{
-            marginTop: "1.5rem",
-            fontWeight: "bold",
-            color: "#1DB954",
-          }}
-        >
+        <p style={{ marginTop: "1.5rem", fontWeight: "700", color: "#1DB954" }}>
           albrechtspencer2@gmail.com
         </p>
       </div>
 
+      {/* Back button */}
       <button
         onClick={() => navigate(-1)}
         style={{
@@ -146,7 +116,14 @@ export default function HelpInfo() { // Sort of a Read me for the web app, has c
           backgroundColor: "#1DB954",
           color: "#000",
           cursor: "pointer",
-          fontWeight: "bold",
+          fontWeight: "700",
+          transition: "0.2s",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.backgroundColor = "#17a44c";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.backgroundColor = "#1DB954";
         }}
       >
         ← Back

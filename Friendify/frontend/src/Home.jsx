@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import logo from "./assets/logo.png";
+import logo from "./assets/Logo.png";
 import axios from "axios";
 
-export default function Home() { // Home page, move to user top tracks or go to the friends page
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || "http://localhost:5139";
+
+export default function Home() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -21,11 +24,12 @@ export default function Home() { // Home page, move to user top tracks or go to 
 
     const fetchDisplayName = async () => {
       try {
-        const res = await axios.get(`http://localhost:5139/api/friends/user`, {
-          params: { spotifyUserId },
-        });
+        const res = await axios.get(
+          `${BACKEND_URL}/api/friends/user`,
+          { params: { spotifyUserId } }
+        );
 
-        if (res.data && res.data.displayName) {
+        if (res.data?.displayName) {
           setDisplayName(res.data.displayName);
         } else {
           setDisplayName("User");
@@ -41,18 +45,16 @@ export default function Home() { // Home page, move to user top tracks or go to 
 
   if (!spotifyUserId) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#121212",
-          color: "#FFFFFF",
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          fontSize: "1.2rem",
-        }}
-      >
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        backgroundColor: "#121212",
+        color: "#FFFFFF",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        fontSize: "1.2rem",
+      }}>
         Missing Spotify user ID.
       </div>
     );

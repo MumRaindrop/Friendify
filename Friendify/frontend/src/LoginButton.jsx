@@ -1,13 +1,17 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "./assets/logo.png";
+import logo from "./assets/Logo.png";
 
-export default function LoginButton() { // Page to redirect to login with spotify or access info page
+// ✅ Vite-compatible environment variable
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || "http://localhost:5139";
+
+export default function LoginButton() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    window.location.href =
-      "https://cds-jersey-beings-sterling.trycloudflare.com/api/spotify/login";
+    console.log("Redirecting to:", `${BACKEND_URL}/api/spotify/login`);
+    window.location.href = `${BACKEND_URL}/api/spotify/login`;
   };
 
   useEffect(() => {
@@ -78,19 +82,6 @@ export default function LoginButton() { // Page to redirect to login with spotif
           fontWeight: "600",
           transition:
             "transform 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-          e.currentTarget.style.boxShadow =
-            "0 4px 20px rgba(29, 185, 84, 0.5)";
-          e.currentTarget.style.backgroundColor = "#1DB954";
-          e.currentTarget.style.color = "#FFFFFF";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "none";
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = "#1DB954";
         }}
       >
         Login with Spotify

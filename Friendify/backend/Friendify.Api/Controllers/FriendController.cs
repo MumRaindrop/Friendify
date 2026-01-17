@@ -4,7 +4,7 @@ using Friendify.Api.Models;
 
 namespace Friendify.Api.Controllers;
 
-[ApiController] //Controller for all api enpoints for dealing with the friends page and tables
+[ApiController]
 [Route("api/friends")]
 public class FriendController : ControllerBase
 {
@@ -15,15 +15,19 @@ public class FriendController : ControllerBase
         _supabase = supabase;
     }
 
-    [HttpPost("request")] //Endpoint to send a friend request to a user
-    public async Task<IActionResult> SendFriendRequest(
-        [FromQuery] string senderSpotifyId,
-        [FromQuery] string receiverSpotifyId) // Properties necessary to send a request
+    // -------------------------
+    // Send Friend Request
+    // -------------------------
+    [HttpPost("request")]
+    public async Task<IActionResult> SendFriendRequest([FromQuery] string senderSpotifyId, [FromQuery] string receiverSpotifyId)
     {
-        if (senderSpotifyId == receiverSpotifyId) // Cannot send a request to yourself
+        if (string.IsNullOrWhiteSpace(senderSpotifyId) || string.IsNullOrWhiteSpace(receiverSpotifyId))
+            return BadRequest("Both sender and receiver Spotify IDs are required.");
+
+        if (senderSpotifyId == receiverSpotifyId)
             return BadRequest("You cannot add yourself.");
 
-        try // Attempt to add a new row to the FriendRequest table in supabase
+        try
         {
             await _supabase.Client
                 .From<FriendRequestRow>()
@@ -34,35 +38,41 @@ public class FriendController : ControllerBase
                     Status = "pending"
                 });
 
-            return Ok("Friend request sent."); // Request Successful
+            return Ok("Friend request sent.");
         }
-        catch (Exception ex) // Catch exception when request fails
+        catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] SendFriendRequest failed: {ex}");
             return StatusCode(500, ex.Message);
         }
     }
 
-    [HttpGet("requests")] // Endpoint to display requests for a user
-    public async Task<IActionResult> GetIncomingRequests([FromQuery] string spotifyUserId) // Takes the user's spotify Id
+    // -------------------------
+    // Get Incoming Requests
+    // -------------------------
+    [HttpGet("requests")]
+    public async Task<IActionResult> GetIncomingRequests([FromQuery] string spotifyUserId)
     {
-        try // Attempt to get all entries where the receiver is the current user
+        if (string.IsNullOrWhiteSpace(spotifyUserId))
+            return BadRequest("SpotifyUserId is required.");
+
+        try
         {
             var requests = await _supabase.Client
                 .From<FriendRequestRow>()
                 .Where(r => r.ReceiverSpotifyId == spotifyUserId)
                 .Get();
 
-            var result = new List<object>(); // Save the results as a list of requests
+            var result = new List<object>();
 
-            foreach (var req in requests.Models) // Get the display name for the sender for each of the incoming requests
+            foreach (var req in requests.Models)
             {
                 var user = await _supabase.Client
                     .From<UserRow>()
                     .Where(u => u.SpotifyUserId == req.SenderSpotifyId)
                     .Get();
 
-                result.Add(new // adjust the results list with the new info
+                result.Add(new
                 {
                     req.Id,
                     SenderSpotifyId = req.SenderSpotifyId,
@@ -71,67 +81,99 @@ public class FriendController : ControllerBase
                 });
             }
 
-            return Ok(result); // Return the list of results with the senders display names
+            return Ok(result);
         }
-        catch (Exception ex) // Catch if getting the requests failed
+        catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] GetIncomingRequests failed: {ex}");
             return StatusCode(500, ex.Message);
         }
     }
 
-    [HttpPost("accept")] // Endpoint for accepting a friend request
+    // -------------------------
+    // Accept Friend Request
+    // -------------------------
+    [HttpPost("accept")]
     public async Task<IActionResult> AcceptRequest([FromQuery] string requestId)
     {
-        var request = await _supabase.Client // Get the request being accepted
+        if (string.IsNullOrWhiteSpace(requestId))
+            return BadRequest("RequestId is required.");
+
+        var request = await _supabase.Client
             .From<FriendRequestRow>()
             .Where(r => r.Id == requestId)
             .Single();
 
-        if (request == null) // request doesnt exist in the database
-            return NotFound("Friend request not found.");
+        if (request == null) return NotFound("Friend request not found.");
 
-        await _supabase.Client // Add the friendship relation to the friends table
-            .From<FriendRow>()
-            .Insert(new[]
-            {
-                new FriendRow
-                {
-                    UserSpotifyId = request.SenderSpotifyId,
-                    FriendSpotifyId = request.ReceiverSpotifyId
-                },
-                new FriendRow
-                {
-                    UserSpotifyId = request.ReceiverSpotifyId,
-                    FriendSpotifyId = request.SenderSpotifyId
-                }
-            });
-
-        await _supabase.Client // Delete the processed request
-            .From<FriendRequestRow>()
-            .Where(r => r.Id == requestId)
-            .Delete();
-
-        return Ok("Friend request accepted.");
-    }
-
-    [HttpPost("reject")] // Endpoint to reject a friend request
-    public async Task<IActionResult> RejectRequest([FromQuery] string requestId)
-    {
-        await _supabase.Client // Get the request being rejected and delete it
-            .From<FriendRequestRow>()
-            .Where(r => r.Id == requestId)
-            .Delete();
-
-        return Ok("Friend request rejected.");
-    }
-
-    [HttpGet] // Return the list of friends as display name
-    public async Task<IActionResult> GetFriends([FromQuery] string spotifyUserId)
-    {
         try
         {
-            // Get the spotify ids of all friends 
+            await _supabase.Client
+                .From<FriendRow>()
+                .Insert(new[]
+                {
+                    new FriendRow
+                    {
+                        UserSpotifyId = request.SenderSpotifyId,
+                        FriendSpotifyId = request.ReceiverSpotifyId
+                    },
+                    new FriendRow
+                    {
+                        UserSpotifyId = request.ReceiverSpotifyId,
+                        FriendSpotifyId = request.SenderSpotifyId
+                    }
+                });
+
+            await _supabase.Client
+                .From<FriendRequestRow>()
+                .Where(r => r.Id == requestId)
+                .Delete();
+
+            return Ok("Friend request accepted.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] AcceptRequest failed: {ex}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    // -------------------------
+    // Reject Friend Request
+    // -------------------------
+    [HttpPost("reject")]
+    public async Task<IActionResult> RejectRequest([FromQuery] string requestId)
+    {
+        if (string.IsNullOrWhiteSpace(requestId))
+            return BadRequest("RequestId is required.");
+
+        try
+        {
+            await _supabase.Client
+                .From<FriendRequestRow>()
+                .Where(r => r.Id == requestId)
+                .Delete();
+
+            return Ok("Friend request rejected.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] RejectRequest failed: {ex}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    // -------------------------
+    // Get Friend List
+    // -------------------------
+    [HttpGet]
+    public async Task<IActionResult> GetFriends([FromQuery] string spotifyUserId)
+    {
+        if (string.IsNullOrWhiteSpace(spotifyUserId))
+            return BadRequest("SpotifyUserId is required.");
+
+        try
+        {
             var friendsResult = await _supabase.Client
                 .From<FriendRow>()
                 .Where(f => f.UserSpotifyId == spotifyUserId)
@@ -139,7 +181,6 @@ public class FriendController : ControllerBase
 
             var friendSpotifyIds = friendsResult.Models.Select(f => f.FriendSpotifyId).ToList();
 
-            // For each of the friends spotify ids get their display names from the user table
             var friendsWithNames = new List<object>();
             foreach (var id in friendSpotifyIds)
             {
@@ -148,114 +189,107 @@ public class FriendController : ControllerBase
                     .Where(u => u.SpotifyUserId == id)
                     .Get();
 
-                if (userResult.Models.Count > 0)
-                    friendsWithNames.Add(new
-                    {
-                        SpotifyId = id,
-                        DisplayName = userResult.Models[0].DisplayName ?? id
-                    });
-                else
-                    friendsWithNames.Add(new
-                    {
-                        SpotifyId = id,
-                        DisplayName = id
-                    });
+                friendsWithNames.Add(new
+                {
+                    SpotifyId = id,
+                    DisplayName = userResult.Models.FirstOrDefault()?.DisplayName ?? id
+                });
             }
 
-            return Ok(friendsWithNames); // Return the set of friends with display names
+            return Ok(friendsWithNames);
         }
-        catch (Exception ex) // If getting the friends list fails
+        catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] GetFriends failed: {ex}");
             return StatusCode(500, ex.Message);
         }
     }
 
-    [HttpGet("search")] // Search for a Friendify user based on display name
+    // -------------------------
+    // Search Users by Display Name
+    // -------------------------
+    [HttpGet("search")]
     public async Task<IActionResult> SearchUsers([FromQuery] string displayName)
     {
-        if (string.IsNullOrWhiteSpace(displayName)) // Chech valid search
+        if (string.IsNullOrWhiteSpace(displayName))
             return BadRequest("Display name is required.");
 
-        try // Get the users from users table with display name equal to the search
+        try
         {
             var result = await _supabase.Client
                 .From<UserRow>()
                 .Where(u => u.DisplayName == displayName)
                 .Get();
 
-            var users = result.Models.Select(u => new // Get the following columns from the table
+            var users = result.Models.Select(u => new
             {
                 u.Id,
                 u.SpotifyUserId,
                 u.DisplayName
             });
 
-            return Ok(users); // Return the results
+            return Ok(users);
         }
-        catch (Exception ex) // If search failed
+        catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] SearchUsers failed: {ex}");
             return StatusCode(500, ex.Message);
         }
     }
 
-    [HttpGet("user")] // Get a user by spotify id rather than display name
-    public async Task<IActionResult> GetUser([FromQuery] string spotifyUserId)
+    // -------------------------
+    // Get User by Spotify ID
+    // -------------------------
+    [HttpGet("user")]
+    public async Task<IActionResult> GetUserById([FromQuery] string spotifyUserId)
     {
-        if (string.IsNullOrWhiteSpace(spotifyUserId)) // Valid search
-            return BadRequest("SpotifyUserId is required");
+        if (string.IsNullOrWhiteSpace(spotifyUserId))
+            return BadRequest("SpotifyUserId is required.");
 
-        try // Get from the user table where ids match
+        try
         {
             var result = await _supabase.Client
                 .From<UserRow>()
                 .Where(u => u.SpotifyUserId == spotifyUserId)
                 .Get();
 
-            var user = result.Models.FirstOrDefault(); // Get the first match
+            var user = result.Models.FirstOrDefault();
             if (user == null) return NotFound();
 
-            return Ok(new { user.DisplayName, user.SpotifyUserId }); // return users display and id name
+            return Ok(new { user.DisplayName, user.SpotifyUserId });
         }
-        catch (Exception ex) // On failed search
+        catch (Exception ex)
         {
-            Console.WriteLine($"[ERROR] GetUser failed: {ex}");
+            Console.WriteLine($"[ERROR] GetUserById failed: {ex}");
             return StatusCode(500, ex.Message);
         }
     }
 
-    [HttpDelete("remove")] // Endpoint for removing a friend
-    public async Task<IActionResult> RemoveFriend(
-        [FromQuery] string spotifyUserId, // Current user and friend ids
-        [FromQuery] string friendSpotifyId)
+    // -------------------------
+    // Remove Friend
+    // -------------------------
+    [HttpDelete("remove")]
+    public async Task<IActionResult> RemoveFriend([FromQuery] string spotifyUserId, [FromQuery] string friendSpotifyId)
     {
-        if (string.IsNullOrWhiteSpace(spotifyUserId) || string.IsNullOrWhiteSpace(friendSpotifyId)) // If inputs are not valid
-            return BadRequest("Both spotifyUserId and friendSpotifyId are required.");
+        if (string.IsNullOrWhiteSpace(spotifyUserId) || string.IsNullOrWhiteSpace(friendSpotifyId))
+            return BadRequest("Both SpotifyUserId and FriendSpotifyId are required.");
 
         try
         {
-            // remove friend relationship
+            // Delete friendship in both directions
             await _supabase.Client
                 .From<FriendRow>()
-                .Where(f =>
-                    f.UserSpotifyId == spotifyUserId &&
-                    f.FriendSpotifyId == friendSpotifyId
-                )
+                .Where(f => f.UserSpotifyId == spotifyUserId && f.FriendSpotifyId == friendSpotifyId)
                 .Delete();
 
-            // remove friend relationship (inverse)
             await _supabase.Client
                 .From<FriendRow>()
-                .Where(f =>
-                    f.UserSpotifyId == friendSpotifyId &&
-                    f.FriendSpotifyId == spotifyUserId
-                )
+                .Where(f => f.UserSpotifyId == friendSpotifyId && f.FriendSpotifyId == spotifyUserId)
                 .Delete();
 
             return Ok("Friend removed.");
         }
-        catch (Exception ex) // If remove friend failed
+        catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] RemoveFriend failed: {ex}");
             return StatusCode(500, ex.Message);

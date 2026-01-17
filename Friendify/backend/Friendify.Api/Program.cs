@@ -1,52 +1,65 @@
-using System.Security.Authentication.ExtendedProtection;
 using Friendify.Api.Services;
 
-var builder = WebApplication.CreateBuilder(args); // Program file to make everything work with the HTTP and HTTPS
+var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// -------------------------
+// Services
+// -------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(FileOptions =>
+// -------------------------
+// CORS - allow frontend
+// -------------------------
+builder.Services.AddCors(options =>
 {
-    FileOptions.AddPolicy("Frontend",
-        policy => policy
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "https://friendify-frontend-h3qi.onrender.com",
+                "http://localhost:5173"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .WithOrigins("http://localhost:5173"));
+            .AllowCredentials();
+    });
 });
 
+// -------------------------
+// Supabase Service
+// -------------------------
 builder.Services.AddSingleton<SupabaseService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+// -------------------------
+// Middleware
+// -------------------------
+app.UseHttpsRedirection();
 
 app.UseCors("Frontend");
 
 app.UseAuthorization();
-
 app.MapControllers();
 
-app.Run();
+// -------------------------
+// Bind to Render port
+// -------------------------
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://*:{port}");
 
+// -------------------------
+// Log loaded controllers
+// -------------------------
 var controllerTypes = typeof(Program).Assembly
     .GetTypes()
     .Where(t => t.IsSubclassOf(typeof(Microsoft.AspNetCore.Mvc.ControllerBase)));
 
-foreach (var c in controllerTypes) // Log to test read controllers
+foreach (var c in controllerTypes)
 {
     Console.WriteLine("Loaded controller: " + c.FullName);
 }
 
+app.Run();
